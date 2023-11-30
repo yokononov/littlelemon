@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct MenuItemDetailsView: View {
-    var model: MenuItemProtocol
+    var model: MenuItem
     var body: some View {
         ScrollView {
             VStack(alignment: .center) {
@@ -21,12 +21,9 @@ struct MenuItemDetailsView: View {
                 Text("\(model.price)")
                 Text("Ordered:")
                     .font(.headline)
-                Text("\(model.ordersCount)")
+                Text("\(model.price)")
                 Text("Ingredient:")
                     .font(.headline)
-                ForEach(model.ingredient) { item in
-                    Text(item.rawValue)
-                }
             }
             
         }
@@ -37,6 +34,6 @@ struct MenuItemDetailsView: View {
 
 struct MenuItemDetailsView_Previews: PreviewProvider {
     static var previews: some View {
-        MenuItemDetailsView(model: MenuItem(title: "Food \(1)", ingredient: (0..<5).map { _ in Ingredient.allCases.randomElement()! }, ordersCount: Int.random(in: 0..<5), category: .Food, price: Int.random(in: 0..<100)))
+        MenuItemDetailsView(model: MenuItem(title: "", description: "", price: "", image: "", category: ""))
     }
 }

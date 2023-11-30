@@ -7,10 +7,11 @@
 
 import Foundation
 
-enum MenuCategory: String {
-    case Food
-    case Drink
-    case Dessert
+enum MenuCategory: String, CaseIterable {
+    case starters
+    case mains
+    case desserts
+    case drinks
 }
 
 extension MenuCategory: Identifiable {

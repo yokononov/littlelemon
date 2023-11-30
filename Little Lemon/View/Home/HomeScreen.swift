@@ -9,38 +9,51 @@ import SwiftUI
 
 struct HomeScreen: View {
     @State private var buttonTapped = false
-    
+
     var body: some View {
         
-        NavigationView { // <1>
-            VStack(alignment: .center, spacing: 0) {
-                HomeHeroView()
-                HomeMenuBreakdown()
-                Divider()
-                ScrollView {
-                    ForEach(0...10, id: \.self) { index in
-                        FoodItemView()
+        TabView {
+            NavigationView { // <1>
+                VStack(alignment: .center, spacing: 0) {
+                    HomeHeroView()
+                    HomeMenuBreakdown()
+                    Divider()
+                    ScrollView {
+                        ForEach(0...10, id: \.self) { index in
+                            FoodItemView()
+                        }
+                    }
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .principal) { // <3>
+                            HomeNavigationBar(inPresentedScreen: {
+                                self.buttonTapped = true
+                            })
+                        }
                     }
                 }
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .principal) { // <3>
-                        HomeNavigationBar(inPresentedScreen: {
-                            self.buttonTapped = true
-                        })
+                .padding(EdgeInsets(top: 16, leading: 0, bottom: 0, trailing: 0))
+                .background(
+                    NavigationLink(destination: ProfileView(), isActive: $buttonTapped) {
+                        EmptyView()
                     }
-                }
+                )
             }
-            .padding(EdgeInsets(top: 16, leading: 0, bottom: 0, trailing: 0))
-            .background(
-                NavigationLink(destination: ProfileView(), isActive: $buttonTapped) {
-                    EmptyView()
+            .navigationBarHidden(true)
+            .tabItem {
+                Label("Menu", systemImage: "list.dash")
+            }
+            
+            ProfileView()
+                .tabItem {
+                    Label("Profile", systemImage: "square.and.pencil")
                 }
-            )
         }
-        .navigationBarHidden(true)
+        }
         
-    }
+        
+        
+//    }
 }
 
 struct HomeScreen_Previews: PreviewProvider {

@@ -8,112 +8,112 @@
 import SwiftUI
 
 struct MenuItemsView: View {
-    @ObservedObject var viewModel: MenuViewViewModel
-    @State private var showingSheet = false
-    
-    var columns: [GridItem] = [
-        GridItem(.fixed(100), spacing: 16),
-        GridItem(.fixed(100), spacing: 16),
-        GridItem(.fixed(100), spacing: 16)
-    ]
-    
+    @Environment(\.managedObjectContext) var viewContext
+
+    @StateObject private var viewModel = MenuViewModel()
+
     var body: some View {
         NavigationView {
-            ScrollView {
-                LazyVGrid(
-                    columns: columns,
-                    alignment: .center,
-                    spacing: 16,
-                    pinnedViews: []
-                ) {
-                    if !viewModel.foods.isEmpty {
-                        Section {
-                            ForEach(viewModel.foods, id: \.self) { food in
-                                NavigationLink (
-                                    destination: MenuItemDetailsView(model: food),
-                                    label: {
-                                        VStack {
-                                            Color.red
-                                                .frame(height: 70)
-                                            Text(food.title)
-                                        }
-                                    }
-                                )
-                                .buttonStyle(PlainButtonStyle())
-                                
-                            }
-                        } header: {
-                            Text("Food")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.leading)
-                        }
-                    }
+            VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Little Lemon")
+                        .font(.largeTitle)
+                        .bold()
+                        .foregroundColor(.accentColor)
                     
-                    if !viewModel.drinks.isEmpty {
-                        Section {
-                            ForEach(viewModel.drinks, id: \.self) { drink in
-                                NavigationLink (
-                                    destination: MenuItemDetailsView(model: drink),
-                                    label: {
-                                        VStack {
-                                            Color.red
-                                                .frame(height: 70)
-                                            Text(drink.title)
-                                        }
-                                    }
-                                )
-                                .buttonStyle(PlainButtonStyle())
-                                
-                            }
-                        } header: {
-                            Text("Drink")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.leading)
-                        }
-                    }
+                    Text("Chicago")
+                        .font(.title)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
                     
-                    if !viewModel.deserts.isEmpty {
-                        Section {
-                            ForEach(viewModel.deserts, id: \.self) { desert in
-                                NavigationLink (
-                                    destination: MenuItemDetailsView(model: desert),
-                                    label: {
-                                        VStack {
-                                            Color.red
-                                                .frame(height: 70)
-                                            Text(desert.title)
-                                        }
-                                    }
-                                )
-                                .buttonStyle(PlainButtonStyle())
-                                
-                            }
-                        } header: {
-                            Text("Desert")
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.leading)
-                        }
-                    }
+                    Text("Little Lemon is a charming neighborhood bistro that serves simple food and classic cocktails in a lively but casual environment. The restaurant features a locally-sourced menu with daily specials.")
+                        .padding(.vertical)
+                        .foregroundColor(.white)
+                    
+                    TextField(
+                        "Search",
+                        text: $viewModel.searchQuery,
+                        prompt: Text("Search for a dish")
+                            .foregroundColor(.white)
+                    )
                 }
+                .padding()
+                .background(Color("olive"))
+            
+                Text("Order for Delivery!")
+                    .font(.title3)
+                    .bold()
+                    .padding()
+                
+                ScrollView(.horizontal) {
+                    HStack {
+                        ForEach(MenuCategory.allCases) { category in
+                            DishCategoryView(viewModel: viewModel,
+                                             category: category)
+                        }
+                    }
+                    .padding([.horizontal, .bottom])
+                }
+                
+                Divider()
+                
+                DishList(sortDescriptors: viewModel.sortDescriptors,
+                         predicate: viewModel.predicate)
             }
-            .navigationTitle("Menu")
-            .toolbar {
-                Button {
-                    showingSheet.toggle()
-                } label: {
-                    Image(systemName: "slider.horizontal.3")
-                }
-                .sheet(isPresented: $showingSheet) {
-                    MenuItemsOptionView(viewModel: viewModel)
-                }
+            .task {
+                await viewModel.loadMenu(context: viewContext)
             }
         }
-        
+    }
+}
+
+private struct DishCategoryView: View {
+    @Environment(\.colorScheme) private var colorScheme
+    
+    @ObservedObject var viewModel: MenuViewModel
+    
+    let category: MenuCategory
+    
+    var body: some View {
+        Button(category.rawValue.capitalized) {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                viewModel.toggle(category: category)
+            }
+        }
+        .bold()
+        .buttonStyle(
+            ChipButtonStyle(
+                color: .red,
+                isSelected: viewModel.selectedCategories.contains(category))
+        )
+    }
+}
+
+private struct ChipButtonStyle: ButtonStyle {
+    let color: Color
+    
+    let isSelected: Bool
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(.vertical, 8)
+            .padding(.horizontal, 16)
+            .frame(height: 32)
+            .foregroundColor(isSelected ? .white : color)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(color, lineWidth: 2)
+            )
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(color.opacity(isSelected ? 1 : 0))
+            )
     }
 }
 
 struct MenuItemsView_Previews: PreviewProvider {
     static var previews: some View {
-        MenuItemsView(viewModel: MenuViewViewModel())
+        MenuItemsView()
+            .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
     }
 }
